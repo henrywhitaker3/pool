@@ -70,13 +70,13 @@ type Pool[T Connection] struct {
 	next uint64
 }
 
-func NewPool[T Connection](opts PoolOptions[T]) (*Pool[T], error) {
+func New[T Connection](opts PoolOptions[T]) (*Pool[T], error) {
 	if err := opts.validate(); err != nil {
 		return nil, err
 	}
 	logger := opts.Logger
 	if logger == nil {
-		logger = defaultLogger()
+		logger = DefaultLogger
 	}
 
 	pool := &Pool[T]{
@@ -90,7 +90,7 @@ func NewPool[T Connection](opts PoolOptions[T]) (*Pool[T], error) {
 		next:   0,
 	}
 
-	go pool.connect()
+	pool.connect()
 
 	return pool, nil
 }
@@ -170,15 +170,17 @@ func (p *Pool[T]) connect() {
 	p.probe()
 
 	tick := time.NewTicker(p.opts.ProbeInterval)
-	defer tick.Stop()
-	for {
-		select {
-		case <-p.Closed():
-			return
-		case <-tick.C:
-			go p.probe()
+	go func() {
+		defer tick.Stop()
+		for {
+			select {
+			case <-p.Closed():
+				return
+			case <-tick.C:
+				go p.probe()
+			}
 		}
-	}
+	}()
 }
 
 func (p *Pool[T]) reportSize(size int) {

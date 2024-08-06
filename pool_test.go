@@ -96,7 +96,7 @@ func TestItInitsPool(t *testing.T) {
 
 	for _, c := range tcs {
 		t.Run(c.name, func(t *testing.T) {
-			pool, err := NewPool(PoolOptions[*dummyConn]{
+			pool, err := New(PoolOptions[*dummyConn]{
 				Connect:       c.connect,
 				Healthy:       c.healthy,
 				Connections:   c.connections,
@@ -111,7 +111,7 @@ func TestItInitsPool(t *testing.T) {
 }
 
 func TestItReturnsAConnection(t *testing.T) {
-	pool, err := NewPool(PoolOptions[*dummyConn]{
+	pool, err := New(PoolOptions[*dummyConn]{
 		Connect: func() (*dummyConn, error) {
 			return newDummy(false), nil
 		},
@@ -133,7 +133,7 @@ func TestItReturnsAConnection(t *testing.T) {
 }
 
 func TestItExlusivelyReturnsAConnection(t *testing.T) {
-	pool, err := NewPool(PoolOptions[*dummyConn]{
+	pool, err := New(PoolOptions[*dummyConn]{
 		Connect: func() (*dummyConn, error) {
 			return newDummy(false), nil
 		},

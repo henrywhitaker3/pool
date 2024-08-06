@@ -5,6 +5,11 @@ import (
 	"log"
 )
 
+var (
+	DefaultLogger = &stdOutLogger{}
+	NullLogger    = &nullLogger{}
+)
+
 type Logger interface {
 	Debugf(format string, args ...any)
 	Errorf(format string, args ...any)
@@ -22,6 +27,7 @@ func (s *stdOutLogger) Errorf(format string, args ...any) {
 	log.Printf(format, args...)
 }
 
-func defaultLogger() Logger {
-	return &stdOutLogger{}
-}
+type nullLogger struct{}
+
+func (n *nullLogger) Debugf(format string, args ...any) {}
+func (n *nullLogger) Errorf(format string, args ...any) {}
