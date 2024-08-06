@@ -59,3 +59,28 @@ func main() {
     conn.Hello()
 }
 ```
+
+### Use your own logger
+
+By default, a pool will use the builtin `log` package to print to stdout, you can pass your own logger:
+
+```go
+pool.PoolOptions[*conn]{
+    Logger: myLogger,
+}
+```
+
+### Metrics
+
+You can provide prometheus metrics to the pool:
+
+```go
+pool.PoolOptions[*conn]{
+    Metrics: &pool.PoolMetrics{
+        // The number of healthy connections in the pool
+        Connections: connectionsGauge,
+        // The number of errors when creating a new pool connection
+        ConnectionErrors: connectionErrorCounter,
+    }
+}
+```
