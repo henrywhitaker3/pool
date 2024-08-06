@@ -1,0 +1,12 @@
+{
+  "branches": ["main"],
+  "repositoryUrl": "https://github.com/henrywhitaker3/pool",
+  "plugins": [
+    [
+      "@semantic-release/github",
+      {
+          "successComment": false
+      }
+    ]
+  ]
+}
