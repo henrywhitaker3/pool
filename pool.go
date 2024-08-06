@@ -244,6 +244,7 @@ func (p *Pool[T]) probe() {
 			conn, err := p.opts.Connect()
 			if err != nil {
 				p.log.Errorf("failed to create connection: %v", err)
+				p.reportError()
 				continue
 			}
 			p.Return(conn)
