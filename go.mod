@@ -1,4 +1,4 @@
-module github.com/orderly-queue/pool
+module github.com/henrywhitaker3/pool
 
 go 1.22.2
 
