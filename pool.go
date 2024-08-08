@@ -23,7 +23,7 @@ type PoolMetrics struct {
 	// The number of connections retrieved from the pool
 	Retrievals prometheus.Counter
 	// The time taken to retrieve an item from the pool in nanoseconds
-	NextDuration prometheus.Histogram
+	NextDuration prometheus.Observer
 }
 
 type PoolOptions[T Connection] struct {
