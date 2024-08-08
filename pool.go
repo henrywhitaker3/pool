@@ -22,6 +22,8 @@ type PoolMetrics struct {
 	ConnectionErrors prometheus.Counter
 	// The number of connections retrieved from the pool
 	Retrievals prometheus.Counter
+	// The time taken to retrieve an item from the pool in nanoseconds
+	NextDuration prometheus.Histogram
 }
 
 type PoolOptions[T Connection] struct {
@@ -35,7 +37,7 @@ type PoolOptions[T Connection] struct {
 	ProbeInterval time.Duration
 	Logger        Logger
 
-	Metrics *PoolMetrics
+	Metrics PoolMetrics
 
 	// MinConnections uint
 	// MaxConnections uint
@@ -104,8 +106,12 @@ func (p *Pool[T]) Next() (T, bool) {
 		return empty, false
 	}
 
+	start := time.Now()
+
 	n := atomic.AddUint64(&p.next, 1)
 	p.reportRetrieval()
+
+	p.reportNextDur(time.Since(start))
 
 	return p.pool[int(n)%len], true
 }
@@ -118,6 +124,9 @@ func (p *Pool[T]) ExNext() (T, bool) {
 		var empty T
 		return empty, false
 	}
+
+	start := time.Now()
+
 	n := atomic.AddUint64(&p.next, 1)
 
 	index := int(n) % len
@@ -127,6 +136,7 @@ func (p *Pool[T]) ExNext() (T, bool) {
 	p.mu.Unlock()
 
 	p.reportRetrieval()
+	p.reportNextDur(time.Since(start))
 
 	p.removeFromPool(index)
 	return conn, true
@@ -184,26 +194,26 @@ func (p *Pool[T]) connect() {
 }
 
 func (p *Pool[T]) reportSize(size int) {
-	if p.opts.Metrics != nil {
-		if p.opts.Metrics.Connections != nil {
-			p.opts.Metrics.Connections.Set(float64(size))
-		}
+	if p.opts.Metrics.Connections != nil {
+		p.opts.Metrics.Connections.Set(float64(size))
 	}
 }
 
 func (p *Pool[T]) reportError() {
-	if p.opts.Metrics != nil {
-		if p.opts.Metrics.ConnectionErrors != nil {
-			p.opts.Metrics.ConnectionErrors.Inc()
-		}
+	if p.opts.Metrics.ConnectionErrors != nil {
+		p.opts.Metrics.ConnectionErrors.Inc()
+	}
+}
+
+func (p *Pool[T]) reportNextDur(dur time.Duration) {
+	if p.opts.Metrics.NextDuration != nil {
+		p.opts.Metrics.NextDuration.Observe(float64(dur.Nanoseconds()))
 	}
 }
 
 func (p *Pool[T]) reportRetrieval() {
-	if p.opts.Metrics != nil {
-		if p.opts.Metrics.Retrievals != nil {
-			p.opts.Metrics.Retrievals.Inc()
-		}
+	if p.opts.Metrics.Retrievals != nil {
+		p.opts.Metrics.Retrievals.Inc()
 	}
 }
 
